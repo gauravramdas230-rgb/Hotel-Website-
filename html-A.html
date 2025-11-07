@@ -1,0 +1,394 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ember & Basil — Neighborhood Kitchen</title>
+  <meta name="description" content="Ember & Basil is a cozy neighborhood kitchen serving seasonal, wood‑fired dishes. Reserve a table or order online." />  <!-- Fonts -->  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">  <style>
+    :root {
+      --bg: #0d0f12;
+      --card: #14181e;
+      --muted: #798497;
+      --text: #e8edf5;
+      --accent: #f9b17a;
+      --accent-2: #9ae6b4;
+      --ring: rgba(249, 177, 122, .45);
+      --maxw: 1200px;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 80% -10%, #223 0%, transparent 60%),
+                  radial-gradient(900px 500px at -10% 10%, #1c222c 0%, transparent 60%),
+                  var(--bg);
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; border-radius: 12px; }
+    .container { width: min(100% - 32px, var(--maxw)); margin-inline: auto; }
+
+    /* Header */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: saturate(140%) blur(8px);
+      background: rgba(13,15,18,.6);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0;
+    }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand-logo { width:36px; height:36px; border-radius:50%; background: conic-gradient(from 210deg, #ff9966, #ffd28f, #9ae6b4, #ff9966); box-shadow: inset 0 0 20px rgba(0,0,0,.25); }
+    .brand-name { font-family: "Playfair Display", serif; font-weight:700; letter-spacing:.3px; font-size: 1.15rem; }
+
+    nav ul { list-style: none; display: flex; gap: 18px; padding: 0; margin: 0; }
+    nav a { padding: 10px 12px; border-radius: 999px; font-weight: 500; color: var(--muted); }
+    nav a:hover, nav a:focus { color: var(--text); background: rgba(255,255,255,.07); outline: none; }
+
+    .cta {
+      display: inline-flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,.1);
+      padding: 10px 16px; border-radius: 999px; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow: var(--shadow);
+    }
+    .cta.primary { border-color: rgba(249,177,122,.4); background: linear-gradient(180deg, #f9b17a, #ef8f59); color: #1b1008; font-weight: 700; }
+    .cta.primary:hover { filter: brightness(1.05); }
+
+    /* Hero */
+    .hero { padding: 72px 0 48px; }
+    .hero-grid { display:grid; gap: 28px; grid-template-columns: 1.1fr .9fr; align-items: center; }
+    .hero h1 { font-family: "Playfair Display", serif; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; margin: 0 0 12px; }
+    .hero p { color: var(--muted); margin: 0 0 22px; font-size: 1.05rem; }
+    .hero-btns { display:flex; gap: 12px; flex-wrap: wrap; }
+    .hero-figure { position: relative; }
+    .hero-figure::after { content:""; position:absolute; inset:-12px; border-radius: 22px; border:1px dashed rgba(255,255,255,.1); pointer-events:none; }
+    .chip { display:inline-flex; align-items:center; gap:8px; font-size:.9rem; color:#1a2319; background: var(--accent-2); border-radius:999px; padding:6px 10px; font-weight:600; }
+
+    /* Slider (Hero) */
+    .slider { position: relative; overflow: hidden; border-radius: 16px; }
+    .slides { display: flex; transition: transform .6s ease; }
+    .slide { min-width: 100%; }
+    .slide img { width: 100%; height: 460px; object-fit: cover; border-radius: 16px; }
+    .slide-nav { position: absolute; top: 50%; transform: translateY(-50%); border: 1px solid rgba(255,255,255,.25); background: rgba(0,0,0,.35); backdrop-filter: blur(4px); color: #fff; width: 38px; height: 38px; border-radius: 999px; display: grid; place-items: center; cursor: pointer; }
+    .slide-nav:hover { background: rgba(0,0,0,.5); }
+    .slide-nav.prev { left: 10px; }
+    .slide-nav.next { right: 10px; }
+    .dots { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; gap: 8px; justify-content: center; }
+    .dot { width: 10px; height: 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.6); background: rgba(255,255,255,.2); cursor: pointer; padding: 0; }
+    .dot[aria-selected="true"] { background: var(--accent); border-color: var(--accent); }
+
+    /* Section */
+    section { padding: 56px 0; }
+    .section-head { display:flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+    h2 { font-family: "Playfair Display", serif; font-size: clamp(1.6rem, 3.8vw, 2.2rem); margin: 0; }
+    .lead { color: var(--muted); }
+
+    /* Cards */
+    .grid { display:grid; gap: 18px; }
+    .grid.menu { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+    .card h3 { margin: 8px 0 6px; font-size: 1.1rem; }
+    .price { color: var(--accent); font-weight: 700; }
+    .tag { font-size: .75rem; color: #1b1815; background: var(--accent); padding: 2px 8px; border-radius: 999px; font-weight: 700; }
+
+    /* Highlight row */
+    .highlight {
+      display:grid; grid-template-columns: 1.2fr .8fr; gap: 22px; align-items:center;
+      background: linear-gradient(120deg, rgba(249,177,122,.1), transparent 40%), var(--card);
+      padding: 18px; border-radius: var(--radius); border:1px solid rgba(255,255,255,.08);
+    }
+
+    /* Gallery */
+    .masonry { columns: 3 240px; column-gap: 14px; }
+    .masonry img { margin: 0 0 14px; border-radius: 14px; }
+
+    /* About + Hours */
+    .about-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    .hours { list-style:none; padding:0; margin:0; }
+    .hours li { display:flex; justify-content: space-between; padding:10px 12px; background: rgba(255,255,255,.04); border-radius: 12px; margin-bottom: 8px; }
+
+    /* Form */
+    form { display:grid; gap: 12px; }
+    .field { display:grid; gap: 6px; }
+    label { font-size: .9rem; color: var(--muted); }
+    input, select, textarea {
+      width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.03); color: var(--text);
+    }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--ring); border-color: var(--ring); }
+
+    /* Footer */
+    footer { padding: 36px 0 56px; color: var(--muted); border-top: 1px solid rgba(255,255,255,.06); margin-top: 56px; }
+    .footer-grid { display:grid; gap: 18px; grid-template-columns: 1.3fr .7fr; }
+
+    /* Utilities */
+    .row { display:flex; gap: 10px; flex-wrap: wrap; align-items:center; }
+    .pill { border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 8px 12px; color: var(--muted); font-weight: 500; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .hero-grid, .highlight, .about-grid, .footer-grid { grid-template-columns: 1fr; }
+      nav ul { display:none; }
+    }
+  </style></head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand" aria-label="Ember & Basil home">
+        <div class="brand-logo" aria-hidden="true"></div>
+        <div class="brand-name">Ember & Basil</div>
+      </div>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="#menu">Menu</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#gallery">Gallery</a></li>
+          <li><a href="#visit">Visit</a></li>
+        </ul>
+      </nav>
+      <a href="#reserve" class="cta" aria-label="Reserve a table">Reserve</a>
+    </div>
+  </header>  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="chip" aria-label="Kitchen status">🔥 Wood‑fired. Seasonal. Local.</span>
+          <h1>Neighborhood kitchen with a spark.</h1>
+          <p>From blistered sourdough to basil‑bright pesto, our menu dances with the seasons. Dine‑in, takeout, or order online.</p>
+          <div class="hero-btns">
+            <a href="#menu" class="cta primary">Explore Menu</a>
+            <a href="#reserve" class="cta">Book a Table</a>
+            <a href="#visit" class="cta" aria-label="Get directions">Get Directions</a>
+          </div>
+        </div>
+        <div class="hero-figure">
+          <div class="slider" aria-label="Featured dishes slider">
+            <button class="slide-nav prev" aria-label="Previous slide">&#8249;</button>
+            <div class="slides">
+              <div class="slide">
+                <img src="https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1400&auto=format&fit=crop" alt="Wood‑fired pizza with basil" />
+              </div>
+              <div class="slide">
+                <img src="https://images.unsplash.com/photo-1541542684-4a9c8e953677?q=80&w=1400&auto=format&fit=crop" alt="Pizza going into a wood oven" />
+              </div>
+              <div class="slide">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1400&auto=format&fit=crop" alt="Gnocchi with peas and mint" />
+              </div>
+            </div>
+            <button class="slide-nav next" aria-label="Next slide">&#8250;</button>
+            <div class="dots" role="tablist" aria-label="Choose slide">
+              <button class="dot" aria-label="Slide 1" aria-selected="true"></button>
+              <button class="dot" aria-label="Slide 2"></button>
+              <button class="dot" aria-label="Slide 3"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section><!-- Daily highlight -->
+<section>
+  <div class="container highlight">
+    <div>
+      <h2 style="margin:0 0 6px">Tonight’s Special</h2>
+      <p class="lead" style="margin:0 0 12px">Charred lemon ricotta gnocchi, sweet peas, mint, brown‑butter crumbs. Limited plates after 7 PM.</p>
+      <div class="row">
+        <span class="pill">Vegetarian</span>
+        <span class="pill">House‑made</span>
+        <span class="pill">Wood‑fired</span>
+      </div>
+    </div>
+    <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200&auto=format&fit=crop" alt="Gnocchi with peas and mint" />
+  </div>
+</section>
+
+<!-- Menu -->
+<section id="menu" aria-labelledby="menu-heading">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="menu-heading">Menu</h2>
+      <p class="lead">A short, seasonal list. Ask about vegan and gluten‑free options.</p>
+    </div>
+    <div class="grid menu">
+      <article class="card" aria-label="Starter: Embered Sourdough">
+        <img src="https://images.unsplash.com/photo-1546549039-49fc02f46b9b?q=80&w=1200&auto=format&fit=crop" alt="Sourdough bread with butter" />
+        <div class="row" style="justify-content: space-between; margin-top:10px">
+          <h3>Embered Sourdough</h3>
+          <span class="price">₹260</span>
+        </div>
+        <p class="lead">Smoked butter, sea salt flakes.</p>
+      </article>
+
+      <article class="card" aria-label="Starter: Tomato Burrata">
+        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200&auto=format&fit=crop" alt="Burrata with tomatoes and basil" />
+        <div class="row" style="justify-content: space-between; margin-top:10px">
+          <h3>Tomato Burrata</h3>
+          <span class="price">₹420</span>
+        </div>
+        <p class="lead">Heirloom tomatoes, basil oil, balsamic pearls.</p>
+      </article>
+
+      <article class="card" aria-label="Main: Basil Pesto Pasta">
+        <img src="https://images.unsplash.com/photo-1528838067302-8a21eefc6ca6?q=80&w=1200&auto=format&fit=crop" alt="Pasta with basil pesto" />
+        <div class="row" style="justify-content: space-between; margin-top:10px">
+          <h3>Basil Pesto Pasta</h3>
+          <span class="price">₹540</span>
+        </div>
+        <p class="lead">House pesto, aged parmesan, toasted pine nuts.</p>
+        <span class="tag">Best Seller</span>
+      </article>
+
+      <article class="card" aria-label="Main: Fire‑Kissed Chicken">
+        <img src="https://images.unsplash.com/photo-1514511547114-9d3a4d0619ed?q=80&w=1200&auto=format&fit=crop" alt="Grilled chicken with herbs" />
+        <div class="row" style="justify-content: space-between; margin-top:10px">
+          <h3>Fire‑Kissed Chicken</h3>
+          <span class="price">₹620</span>
+        </div>
+        <p class="lead">Chili honey glaze, roasted garlic yogurt.</p>
+      </article>
+
+      <article class="card" aria-label="Pizza: Margherita"> 
+        <img src="https://images.unsplash.com/photo-1548365328-9f547fb09530?q=80&w=1200&auto=format&fit=crop" alt="Margherita pizza" />
+        <div class="row" style="justify-content: space-between; margin-top:10px">
+          <h3>Margherita</h3>
+          <span class="price">₹480</span>
+        </div>
+        <p class="lead">San Marzano, fior di latte, basil.</p>
+      </article>
+
+      <article class="card" aria-label="Dessert: Basque Cheesecake">
+        <img src="https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?q=80&w=1200&auto=format&fit=crop" alt="Basque burnt cheesecake" />
+        <div class="row" style="justify-content: space-between; margin-top:10px">
+          <h3>Basque Cheesecake</h3>
+          <span class="price">₹360</span>
+        </div>
+        <p class="lead">Smoky edges, vanilla bean cream.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Gallery -->
+<section id="gallery" aria-labelledby="gallery-heading">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="gallery-heading">Gallery</h2>
+      <p class="lead">A peek at the plates and the vibe.</p>
+    </div>
+    <div class="masonry">
+      <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1200&auto=format&fit=crop" alt="Dining room warm lighting" />
+      <img src="https://images.unsplash.com/photo-1541542684-4a9c8e953677?q=80&w=1200&auto=format&fit=crop" alt="Pizza in wood‑fired oven" />
+      <img src="https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?q=80&w=1200&auto=format&fit=crop" alt="Cocktail with citrus" />
+      <img src="https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?q=80&w=1200&auto=format&fit=crop" alt="Pasta close‑up" />
+      <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?q=80&w=1200&auto=format&fit=crop" alt="Chef plating dish" />
+    </div>
+  </div>
+</section>
+
+<!-- About + Hours/Location -->
+<section id="about" aria-labelledby="about-heading">
+  <div class="container about-grid">
+    <article class="card">
+      <h2 id="about-heading" style="margin-top:0">About Ember & Basil</h2>
+      <p class="lead">We’re a small, independent kitchen built around a wood oven and bright herbs. Our team sources from local farms and mills, and we change the menu often to keep pace with the seasons.</p>
+      <p>We believe in simple food, cooked carefully, and good music that doesn’t drown your table talk.</p>
+    </article>
+    <aside class="card" id="visit" aria-labelledby="visit-heading">
+      <h2 id="visit-heading" style="margin-top:0">Hours & Location</h2>
+      <ul class="hours" aria-label="Opening hours">
+        <li><span>Mon–Thu</span><span>12:00–22:00</span></li>
+        <li><span>Fri</span><span>12:00–23:00</span></li>
+        <li><span>Sat</span><span>10:00–23:00</span></li>
+        <li><span>Sun</span><span>10:00–21:00</span></li>
+      </ul>
+      <p style="margin:14px 0 8px">72 Market Road, Panaji, Goa 403001</p>
+      <a class="cta" href="https://maps.google.com/?q=Panaji+Goa" target="_blank" rel="noopener">Open in Maps</a>
+    </aside>
+  </div>
+</section>
+
+<!-- Reservations -->
+<section id="reserve" aria-labelledby="reserve-heading">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="reserve-heading">Reserve a Table</h2>
+      <p class="lead">We hold tables for 10 minutes. For parties of 8+, call us.</p>
+    </div>
+    <form class="card" action="thanks.html" method="GET">
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" placeholder="Your full name" required />
+      </div>
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input id="phone" name="phone" type="tel" placeholder="e.g. 9876543210" required />
+      </div>
+      <div class="field">
+        <label for="date">Date</label>
+        <input id="date" name="date" type="date" required />
+      </div>
+      <div class="field">
+        <label for="time">Time</label>
+        <input id="time" name="time" type="time" required />
+      </div>
+      <div class="field">
+        <label for="guests">Guests</label>
+        <select id="guests" name="guests" required>
+          <option value="" disabled selected>Select</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>4</option>
+          <option>5</option>
+          <option>6</option>
+          <option>7</option>
+          <option>8+</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="notes">Notes (optional)</label>
+        <textarea id="notes" name="notes" rows="3" placeholder="Allergies, high‑chair, occasion…"></textarea>
+      </div>
+      <div class="row" style="justify-content: space-between; align-items:center; margin-top:6px">
+        <span class="lead">No prepayment. SMS confirmation.</span>
+        <button class="cta primary" type="submit">Request Booking</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+  </main>  <footer>
+    <div class="container footer-grid">
+      <div>
+        <div class="brand" style="margin-bottom:8px">
+          <div class="brand-logo" aria-hidden="true"></div>
+          <div class="brand-name">Ember & Basil</div>
+        </div>
+        <p>© <span id="year"></span> Ember & Basil. Made with real basil and a little fire.</p>
+      </div>
+      <div class="row" aria-label="Social links">
+        <a class="cta" href="#" aria-label="Instagram">
+          <span class="sr-only">Instagram</span>
+          <!-- simple icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor"/><circle cx="12" cy="12" r="4.5" stroke="currentColor"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
+        </a>
+        <a class="cta" href="#" aria-label="Facebook">
+          <span class="sr-only">Facebook</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 8H16V5.5h-1.5A3.5 3.5 0 0 0 11 9v2H9v2.5h2V21h3v-7.5h2l.5-2.5H14V9c0-.6.4-1 1-1Z" fill="currentColor"/></svg>
+        </a>
+        <a class="cta" href="#" aria-label="X">
+          <span class="sr-only">X</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.7 10.2 20.6 3h-2.1l-4.9 6-4.9-6H3.5l6 7.4-6 7.6h2.1l5.1-6.2 5.2 6.2h5.1l-6.3-7.8Z" fill="currentColor"/></svg>
+        </a>
+      </div>
+    </div>
+    <script>
+      // Footer year
+      document.getElementById('year').textContent = new Date().getFullYear();// Simple slider logic (auto + controls)
+  const slider = document.querySelector(
